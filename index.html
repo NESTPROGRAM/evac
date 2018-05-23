@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+    <script src="lib/marzipano.js"></script>
+    <script src="lib/domSugar.js"></script>
+    <script src="lib/jquery-3.1.1.js"></script>
+    <script src="lib/lodash.js"></script>
+    <script src="lib/polyfill.js"></script>
+    <script src="lib/modernizr-custom.js"></script>
+    <script src="script/classes/application.js"></script>
+    <script src="script/classes/audioManager.js"></script>
+    <script src="script/classes/controller.js"></script>
+    <script src="script/classes/stateMachine.js"></script>
+    <script src="script/classes/inventory.js"></script>
+    <script src="script/classes/objectLayer.js"></script>
+    <script src="script/classes/objectLayer2D.js"></script>
+    <script src="script/classes/scene.js"></script>
+    <script src="script/classes/scorekeeper.js"></script>
+    <script src="script/classes/world.js"></script>
+    <script src="script/classes/uiManager.js"></script>
+    <script src="script/classes/uiElements.js"></script>
+    <script src="script/classes/scene2D.js"></script>
+    <script src="script/descriptor_ed.js"></script>
+    <script src="script/descriptor_nicu.js"></script>
+    <script src="script/descriptor_test.js"></script>
+    <link rel="stylesheet" href="style/general.css"/>
+    <link rel="stylesheet" href="style/specific.css"/>
+</head>
+<body>
+<div id="mainIntro">
+    <img src="images/logo_thin.png" style="width: 100%"/>
+    <div id="introText">
+        <h2>Welcome to EVAC, the virtual evacuation simulator.</h2>
+        <p>
+            For this simulation, you will be the bedside nurse of a critically ill patient who requires
+            evacuation from the hospital during a disaster. Your goal is to quickly and safely prepare
+            your patient for evacuation by packing equipment and supplies you feel would be necessary
+            for the situation.
+        </p>
+        <p>
+            You will be able to interact with the equipment, pack and unpack supplies,
+            and move around the room as needed to accomplish your goal. You will have the opportunity to
+            explore and practice in the virtual environment before entering the simulation.
+        </p>
+        <p>
+            Once you feel confident in your ability to move and interact in the environment, please let us
+            know you are ready to leave the practice environment by clicking on the ventilator. By
+            clicking on the ventilator, you are indicating that you are ready to provide hand bagged
+            breaths, and signals the program to complete the scenario.
+        </p>
+    </div>
+
+    <audio id="audioPlayer">
+        <source src="audio/01-introduction/intro_training.mp3" type="audio/mpeg">
+        Your browser does not support the audio element.
+    </audio>
+
+    <div id="introForm">
+        Please enter your name / ID: <input type="text" name="name" id="name_field" title="Name">
+        <button onclick="proceed();">Proceed</button>
+    </div>
+
+    <div id="introButtons" style="display:none">
+        <button onclick="startNICU()">Start NICU</button>
+        <button onclick="startED()">Start ED</button><br/>
+        <button id="test_button" onclick="startTest()">Start Test</button>
+    </div>
+</div>
+
+<div id="pano" style="display: none;"></div>
+
+<script language="javascript">
+    let app = null;
+    let participantName = null;
+    let testMode = false;
+
+    // Test for browser compatibility
+    if (!(Modernizr.audio && Modernizr.es5 && Modernizr.arrow)) {
+        document.querySelector("#introText").innerHTML = "Your browser is incapable of running EVAC. Please upgrade to the latest version of Chrome or Firefox.";
+        document.querySelector("#introText").className = "error";
+        $("#introForm").hide();
+        $("#introButtons").show();
+    }
+    else {
+        let uiManager = new UIManager(
+            document.querySelector("#pano"),
+            document.querySelector("#mainIntro")
+        );
+
+        function proceed () {
+            if (document.querySelector("#name_field").value.trim() !== "") {
+                document.getElementById("audioPlayer").play();
+                participantName = document.querySelector("#name_field").value.trim();
+                $("#introForm").hide();
+                $("#introButtons").show();
+
+                if (testMode !== true)
+                    $("#test_button").hide();
+            }
+        }
+
+        function startED() {
+            $("#mainIntro").hide();
+            document.getElementById("audioPlayer").pause();
+            app = new Application(uiManager, worldDescriptor_ED);
+            app.stateMachine.enterState(STATE_LOADING);
+        }
+
+        function startNICU() {
+            $("#mainIntro").hide();
+            document.getElementById("audioPlayer").pause();
+            app = new Application(uiManager, worldDescriptor_NICU);
+            app.stateMachine.enterState(STATE_LOADING);
+        }
+
+        function startTest() {
+            $("#mainIntro").hide();
+            document.getElementById("audioPlayer").pause();
+            app = new Application(uiManager, worldDescriptor_TEST);
+            app.stateMachine.enterState(STATE_LOADING);
+        }
+    }
+
+//    for (let key in worldDescriptor_NICU.objects) {
+//        console.log(key + ' - ' + worldDescriptor_NICU.objects[key].value);
+//    }
+
+    //    console.log(Modernizr.on("audio", function (p) { if (!p) browserFail(); }));
+    //    console.log(Modernizr.on("es5", function (p) { if (!p) browserFail(); }));
+    //    console.log(Modernizr.on("arrow", function (p) { if (!p) browserFail(); }));
+    //    console.log(Modernizr.on("promises", function (p) { if (!p) browserFail(); }));
+    //    console.log(Modernizr.on("webgl", function (p) { if (!p) browserFail(); }));
+</script>
+</body>
+</html>

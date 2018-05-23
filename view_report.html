@@ -1,0 +1,90 @@
+<html>
+<head>
+    <script src="lib/jquery-3.1.1.js"></script>
+    <script src="lib/domSugar.js"></script>
+
+    <script language="javascript">
+        $(document).ready(function () {
+
+            // Determine URL of report file
+            let url = document.location.href;
+            let reportFile = url.substring(url.indexOf("#")+1);
+
+            $.ajax({
+                dataType: "json",
+                url: "reports/" + reportFile,
+                success: function (data) {
+
+                    console.log(data);
+
+                    let div_loading = $("#loading");
+                    let div_report = $("#report");
+
+                    // Swap visibility of loading message and report
+                    div_loading.hide();
+                    div_report.show();
+
+                    div_report.append(DOMSugar.h(4, "<b>Participant:</b> " + data.name));
+
+                    div_report.append(DOMSugar.p("<b>Date:</b> " + data.date));
+
+                    div_report.append(DOMSugar.p("<b>Attempt 1:</b> " + data.attempt1_duration + " seconds"));
+                    div_report.append(DOMSugar.p("<b>Attempt 2:</b> " + data.attempt2_duration + " seconds"));
+
+                    if (data.responses !== undefined) {
+                        div_report.append(DOMSugar.p("<b>Response to \"Are you or your patient injured?\":</b>"));
+                        div_report.append(DOMSugar.p("\"" + data.responses[0] + "\""));
+                        div_report.append(DOMSugar.p("<b>Response to \"Is there any damage to your room?\":</b>"));
+                        div_report.append(DOMSugar.p("\"" + data.responses[1] + "\""));
+                        div_report.append(DOMSugar.p("<b>Response to \"Please do a repeat back\":</b>"));
+                        div_report.append(DOMSugar.p("\"" + data.responses[2] + "\""));
+                    }
+
+
+                    let list1 = "<h2>Events - Attempt 1</h2><ul>";
+                    let list2 = "<h2>Events - Attempt 2</h2><ul>";
+                    for (let i = 0; i < data.events.length; i++)
+                    {
+                        let e = data.events[i];
+                        let text = "<li>" + "At " + e.time + " seconds, ";
+                        if (e.action === "picked_up" || e.action === "picked_up_2D")
+                            text += "participant picked up " + e.object + "</li>";
+                        else if (e.action === "empty")
+                            text += "participant's inventory was auto-emptied" + "</li>";
+                        else if (e.action === "dropped")
+                            text += "participant dropped " + e.object + "</li>";
+                        else
+                            text += e.action + " --- " + e.object + "</li>";
+
+                        // Add to the appropriate block
+                        if ("1" === e.attempt)
+                            list1 += text;
+                        else
+                            list2 += text;
+                    }
+                    list1 += "</ul>";
+                    list2 += "</ul>";
+
+                    div_report.append(list1);
+                    div_report.append(list2);
+                }
+            })
+        });
+
+    </script>
+    <style>
+        body { font-family: verdana, sans serif; }
+    </style>
+</head>
+<body>
+    <h1>View Report</h1>
+
+    <div id="loading">
+        Loading..
+    </div>
+
+    <div id="report" style="display:none;">
+
+    </div>
+</body>
+</html>
